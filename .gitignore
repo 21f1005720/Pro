@@ -9,3 +9,7 @@ htmlcov/
 .DS_Store
 .venv/
 nhi_hua.md
+LICENSE
+Answer.json
+README.md
+tests/

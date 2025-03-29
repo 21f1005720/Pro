@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # IITM Assignment API
 
 This API automatically answers questions from graded assignments for the IIT Madras Online Degree in Data Science.
@@ -37,3 +38,6 @@ Response:
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+=======
+# Project_2
+>>>>>>> e42c4776effbaaa6932903cc01637aca3969c294

@@ -2,12 +2,10 @@ from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from typing import Optional
-from app.utils.openai_client import get_openai_response
-from app.utils.file_handler import save_upload_file_temporarily
+import json
+from mangum import Adapter
 
-# Import the functions you want to test directly
-from app.utils.functions import *
-
+# Create the FastAPI app
 app = FastAPI(title="IITM Assignment API")
 
 # Add CORS middleware
@@ -19,6 +17,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Import your utilities here
+# Note: You'll need to adjust these imports based on your project structure
+# For example, you might need to create these utility files in the api directory
+from api.utils.openai_client import get_openai_response
+from api.utils.file_handler import save_upload_file_temporarily
+from api.utils.functions import analyze_sales_with_phonetic_clustering, calculate_prettier_sha256
+
+@app.get("/")
+async def root():
+    return {"message": "Welcome to IITM Assignment API"}
 
 @app.post("/api/")
 async def process_question(
@@ -29,14 +37,11 @@ async def process_question(
         temp_file_path = None
         if file:
             temp_file_path = await save_upload_file_temporarily(file)
-
         # Get answer from OpenAI
         answer = await get_openai_response(question, temp_file_path)
-
         return {"answer": answer}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 # New endpoint for testing specific functions
 @app.post("/debug/{function_name}")
@@ -47,7 +52,6 @@ async def debug_function(
 ):
     """
     Debug endpoint to test specific functions directly
-
     Args:
         function_name: Name of the function to test
         file: Optional file upload
@@ -58,14 +62,11 @@ async def debug_function(
         temp_file_path = None
         if file:
             temp_file_path = await save_upload_file_temporarily(file)
-
         # Parse parameters
         parameters = json.loads(params)
-
         # Add file path to parameters if file was uploaded
         if temp_file_path:
             parameters["file_path"] = temp_file_path
-
         # Call the appropriate function based on function_name
         if function_name == "analyze_sales_with_phonetic_clustering":
             result = await analyze_sales_with_phonetic_clustering(**parameters)
@@ -81,14 +82,9 @@ async def debug_function(
             return {
                 "error": f"Function {function_name} not supported for direct testing"
             }
-
     except Exception as e:
         import traceback
-
         return {"error": str(e), "traceback": traceback.format_exc()}
 
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+# Create handler for AWS Lambda / Vercel
+handler = Adapter(app)
